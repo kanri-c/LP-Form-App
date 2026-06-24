@@ -24,7 +24,12 @@
   padding: 10px 40px;
   border-radius: 50px;
   background-color: #f5f375;
-  transition: transform 0.1s ease-in-out;
+  font-weight: 500;
+  transition: transform 0.1s ease-in-out, opacity 0.3s ease;
+}
+
+.loginButton:hover {
+  opacity: 0.8;
 }
 
 .loginButton:active {

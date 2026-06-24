@@ -7,7 +7,7 @@ export default function Home() {
       <div className={styles.inner}>
         <h1 className={styles.title}>LP制作依頼フォーム</h1>
       </div>
-      <Link href="/login" className={styles.loginButton}>ログインする</Link>
+      <Link href="/request" className={styles.loginButton}>Googleでログイン</Link>
     </main>
   );
 }
