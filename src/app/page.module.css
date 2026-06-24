@@ -1,9 +1,14 @@
 .main {
-  
+  position: relative;
+  min-height: 100svh;
 }
 
 .inner {
-
+  display: flex;
+  position: absolute;
+  align-items: center;
+  justify-content: center;
+  inset: 0;
 }
 
 .title {
@@ -12,5 +17,16 @@
 }
 
 .loginButton {
+  position: absolute;
+  bottom: 150px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 10px 40px;
+  border-radius: 50px;
+  background-color: #f5f375;
+  transition: transform 0.1s ease-in-out;
+}
 
+.loginButton:active {
+  transform: translateX(-50%) scale(1.1);
 }
