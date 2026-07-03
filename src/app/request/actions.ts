@@ -6,6 +6,9 @@ import { getCurrentUser } from "@/lib/session";
 import type { RequestFormInput } from "@/lib/types";
 
 export async function submitRequest(data: RequestFormInput) {
+  console.log("[submitRequest] logo:", data.logo);
+  console.log("[submitRequest] otherAssets:", data.otherAssets);
+  console.log("[submitRequest] menuItems photos:", data.menuItems.map((m) => m.photos));
   // ログイン確認
   const user = await getCurrentUser();
   if (!user) redirect("/");
