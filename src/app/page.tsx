@@ -5,7 +5,7 @@ export default function Home() {
   return (
     <main className={styles.main}>
       <div className={styles.inner}>
-        <h1 className={styles.title}>LP制作依頼管理</h1>
+        <h1 className={styles.title}>LP制作依フォーム</h1>
         <form
           action={async () => {
             "use server";
