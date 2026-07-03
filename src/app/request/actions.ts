@@ -33,8 +33,11 @@ export async function submitRequest(data: RequestFormInput) {
     return { error: "メニュー / プランを1つ以上入力してください。" };
   }
 
+  // 保存対象のメニュー（名称が入力されているもののみ）
+  const validMenuItems = menuItems.filter((item) => item.name.trim());
+
   // DBに保存
-  await prisma.project.create({
+  const project = await prisma.project.create({
     data: {
       clientId: user.id,
       status: "waiting",
@@ -54,14 +57,12 @@ export async function submitRequest(data: RequestFormInput) {
         },
       },
       menuItems: {
-        create: menuItems
-          .filter((item) => item.name.trim())
-          .map((item, index) => ({
-            sortOrder: index,
-            name: item.name,
-            priceText: item.priceText || null,
-            description: item.description || null,
-          })),
+        create: validMenuItems.map((item, index) => ({
+          sortOrder: index,
+          name: item.name,
+          priceText: item.priceText || null,
+          description: item.description || null,
+        })),
       },
       snsLinks: {
         create: data.snsLinks.map((sns) => ({
@@ -70,7 +71,53 @@ export async function submitRequest(data: RequestFormInput) {
         })),
       },
     },
+    include: {
+      menuItems: { orderBy: { sortOrder: "asc" } },
+    },
   });
+
+  // --- 画像をAssetテーブルへ保存 ---
+
+  // ロゴ
+  if (data.logo) {
+    await prisma.asset.create({
+      data: {
+        projectId: project.id,
+        kind: "logo",
+        blobUrl: data.logo.previewUrl,
+        sizeBytes: data.logo.sizeBytes,
+      },
+    });
+  }
+
+  // その他の素材
+  if (data.otherAssets.length > 0) {
+    await prisma.asset.createMany({
+      data: data.otherAssets.map((img) => ({
+        projectId: project.id,
+        kind: "other" as const,
+        blobUrl: img.previewUrl,
+        sizeBytes: img.sizeBytes,
+      })),
+    });
+  }
+
+  // メニュー写真（sortOrderで作成済みメニューと対応付ける）
+  for (let i = 0; i < validMenuItems.length; i++) {
+    const photos = validMenuItems[i].photos;
+    if (photos.length === 0) continue;
+
+    const createdMenu = project.menuItems[i];
+    await prisma.asset.createMany({
+      data: photos.map((img) => ({
+        projectId: project.id,
+        menuItemId: createdMenu.id,
+        kind: "menu_photo" as const,
+        blobUrl: img.previewUrl,
+        sizeBytes: img.sizeBytes,
+      })),
+    });
+  }
 
   return { success: true };
 }
