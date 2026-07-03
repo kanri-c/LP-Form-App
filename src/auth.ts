@@ -18,8 +18,28 @@ function resolveRole(email: string | null | undefined): Role {
 }
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
-  providers: [Google],
+  providers: [
+    Google({
+      authorization: {
+        params: {
+          prompt: "select_account",
+        },
+      },
+    }),
+  ],
   session: { strategy: "jwt" },
+  jwt: {
+    maxAge: 60 * 60 * 24, // 念のためトークン自体の有効期限（1日）
+  },
+  cookies: {
+    sessionToken: {
+      options: {
+        // maxAgeを指定しないことで「ブラウザセッションCookie」になる
+        // = ブラウザを閉じるとCookieが消え、次回アクセス時は未ログイン扱いになる
+        maxAge: undefined,
+      },
+    },
+  },
   callbacks: {
     async signIn({ user, account }) {
       if (account?.provider === "google" && user.email && account.providerAccountId) {
