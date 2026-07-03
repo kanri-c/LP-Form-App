@@ -1,57 +1,79 @@
+import { useRef, useState } from "react";
 import styles from "./ImageUploader.module.css";
 import type { ImageInput } from "@/lib/types";
 
-const MAX_SIZE_BYTES = 5 * 1024 * 1024; // 5MB
+const MAX_SIZE_BYTES = 5 * 1024 * 1024;
 
 type Props = {
   images: ImageInput[];
   onChange: (images: ImageInput[]) => void;
-  maxCount: number; // 添付できる最大枚数
+  maxCount: number;
 };
 
 export default function ImageUploader({ images, onChange, maxCount }: Props) {
-  // ファイルが選択されたとき
-  const handleSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const inputRef = useRef<HTMLInputElement>(null);
+  const [isUploading, setIsUploading] = useState(false);
+
+  const handleSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files) return;
 
     const remaining = maxCount - images.length;
     const selected = Array.from(files).slice(0, remaining);
 
+    setIsUploading(true);
     const newImages: ImageInput[] = [];
+
     for (const file of selected) {
-      // 5MB超は受け付けない（モックでは簡易チェック）
       if (file.size > MAX_SIZE_BYTES) {
         alert(`「${file.name}」は5MBを超えているため追加できません。`);
         continue;
       }
+
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const res = await fetch("/api/blob/upload", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!res.ok) {
+        alert(`「${file.name}」のアップロードに失敗しました。`);
+        continue;
+      }
+
+      const data = await res.json();
+
       newImages.push({
         id: `img-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
         fileName: file.name,
-        previewUrl: URL.createObjectURL(file), // ブラウザ内の一時プレビューURL
+        previewUrl: data.url,
         sizeBytes: file.size,
       });
     }
 
     onChange([...images, ...newImages]);
-    // 同じファイルを連続で選べるよう入力欄をリセット
-    e.target.value = "";
+    setIsUploading(false);
+    if (inputRef.current) inputRef.current.value = "";
   };
 
-  // 指定idの画像を削除
   const removeImage = (id: string) => {
     onChange(images.filter((img) => img.id !== id));
   };
 
-  const canAddMore = images.length < maxCount;
+  const canAddMore = images.length < maxCount && !isUploading;
 
   return (
     <div className={styles.uploader}>
       <div className={styles.previewList}>
         {images.map((img) => (
           <div key={img.id} className={styles.preview}>
-            {/* プレビュー表示。next/imageではなく素のimgでよい（一時URLのため） */}
-            <img src={img.previewUrl} alt={img.fileName} className={styles.previewImg} />
+            <img
+              src={img.previewUrl}
+              alt={img.fileName}
+              className={styles.previewImg}
+            />
             <button
               type="button"
               className={styles.removeImg}
@@ -63,9 +85,18 @@ export default function ImageUploader({ images, onChange, maxCount }: Props) {
           </div>
         ))}
 
+        {/* アップロード中のローディング表示 */}
+        {isUploading && (
+          <div className={styles.uploading}>
+            <span className={styles.uploadingIcon}>⟳</span>
+            <span className={styles.uploadingText}>アップロード中...</span>
+          </div>
+        )}
+
         {canAddMore && (
           <label className={styles.addLabel}>
             <input
+              ref={inputRef}
               type="file"
               accept="image/*"
               multiple
@@ -79,6 +110,7 @@ export default function ImageUploader({ images, onChange, maxCount }: Props) {
       </div>
       <p className={styles.hint}>
         {images.length} / {maxCount} 枚（1枚あたり5MBまで）
+        {isUploading && "　アップロード中..."}
       </p>
     </div>
   );
