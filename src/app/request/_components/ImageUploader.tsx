@@ -1,4 +1,5 @@
 import { useRef, useState } from "react";
+import { upload } from "@vercel/blob/client";
 import styles from "./ImageUploader.module.css";
 import type { ImageInput } from "@/lib/types";
 
@@ -30,27 +31,22 @@ export default function ImageUploader({ images, onChange, maxCount }: Props) {
         continue;
       }
 
-      const formData = new FormData();
-      formData.append("file", file);
+      try {
+        // ブラウザからVercel Blobへ直接アップロード
+        const blob = await upload(file.name, file, {
+          access: "public",
+          handleUploadUrl: "/api/blob/upload",
+        });
 
-      const res = await fetch("/api/blob/upload", {
-        method: "POST",
-        body: formData,
-      });
-
-      if (!res.ok) {
+        newImages.push({
+          id: `img-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+          fileName: file.name,
+          previewUrl: blob.url,
+          sizeBytes: file.size,
+        });
+      } catch {
         alert(`「${file.name}」のアップロードに失敗しました。`);
-        continue;
       }
-
-      const data = await res.json();
-
-      newImages.push({
-        id: `img-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
-        fileName: file.name,
-        previewUrl: data.url,
-        sizeBytes: file.size,
-      });
     }
 
     onChange([...images, ...newImages]);
@@ -69,11 +65,7 @@ export default function ImageUploader({ images, onChange, maxCount }: Props) {
       <div className={styles.previewList}>
         {images.map((img) => (
           <div key={img.id} className={styles.preview}>
-            <img
-              src={img.previewUrl}
-              alt={img.fileName}
-              className={styles.previewImg}
-            />
+            <img src={img.previewUrl} alt={img.fileName} className={styles.previewImg} />
             <button
               type="button"
               className={styles.removeImg}
@@ -85,10 +77,8 @@ export default function ImageUploader({ images, onChange, maxCount }: Props) {
           </div>
         ))}
 
-        {/* アップロード中のローディング表示 */}
         {isUploading && (
           <div className={styles.uploading}>
-            <span className={styles.uploadingIcon}>⟳</span>
             <span className={styles.uploadingText}>アップロード中...</span>
           </div>
         )}
@@ -110,7 +100,6 @@ export default function ImageUploader({ images, onChange, maxCount }: Props) {
       </div>
       <p className={styles.hint}>
         {images.length} / {maxCount} 枚（1枚あたり5MBまで）
-        {isUploading && "　アップロード中..."}
       </p>
     </div>
   );
