@@ -61,6 +61,15 @@ function validate(
     errors.push("メニュー / プランの名称を1つ以上入力してください。");
   }
 
+  // 名称が入力されているメニューには写真を必須にする（最低1枚）
+  menuItems.forEach((item, index) => {
+    if (item.name.trim() !== "" && item.photos.length === 0) {
+      errors.push(
+        `メニュー${index + 1}「${item.name}」に写真を添付してください。`
+      );
+    }
+  });
+
   return errors;
 }
 

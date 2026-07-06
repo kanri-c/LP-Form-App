@@ -24,6 +24,15 @@ export async function submitRequest(data: RequestFormInput) {
   if (!menuItems.some((item) => item.name.trim())) {
     return { error: "メニュー / プランを1つ以上入力してください。" };
   }
+  // 名称が入力されているメニューには写真必須
+  const menuWithoutPhoto = menuItems.find(
+    (item) => item.name.trim() !== "" && item.photos.length === 0
+  );
+  if (menuWithoutPhoto) {
+    return {
+      error: `メニュー「${menuWithoutPhoto.name}」に写真を1枚以上添付してください。`,
+    };
+  }
 
   // 保存対象のメニュー（名称が入力されているもののみ）
   const validMenuItems = menuItems.filter((item) => item.name.trim());
