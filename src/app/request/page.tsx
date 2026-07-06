@@ -65,7 +65,7 @@ function validate(
   menuItems.forEach((item, index) => {
     if (item.name.trim() !== "" && item.photos.length === 0) {
       errors.push(
-        `メニュー${index + 1}「${item.name}」に写真を添付してください。`
+        `写真を添付してください。`
       );
     }
   });
