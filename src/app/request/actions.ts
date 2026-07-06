@@ -10,14 +10,6 @@ export async function submitRequest(data: RequestFormInput) {
   const user = await getCurrentUser();
   if (!user) redirect("/");
 
-  // 既に案件がある場合は弾く（1クライアント1案件）
-  const existing = await prisma.project.findFirst({
-    where: { clientId: user.id },
-  });
-  if (existing) {
-    return { error: "既に制作依頼が登録されています。" };
-  }
-
   // バリデーション（必須項目）
   const { basicInfo, menuItems } = data;
   if (

@@ -126,3 +126,33 @@
 .requestButton:hover {
   background-color: #254a3f;
 }
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.newRequestButton {
+  display: inline-block;
+  padding: 10px 24px;
+  background-color: #2f5d50;
+  color: #ffffff;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  transition: background-color 0.2s;
+}
+
+.newRequestButton:hover {
+  background-color: #254a3f;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
