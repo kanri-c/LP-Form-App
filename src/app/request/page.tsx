@@ -181,7 +181,7 @@ export default function RequestPage() {
             onClick={handleSubmit}
             disabled={isSubmitting}
           >
-            {isSubmitting ? "送信中..." : "制作依頼を送信する"}
+            {isSubmitting ? "送信中..." : "送信する"}
           </button>
         </div>
       </div>
